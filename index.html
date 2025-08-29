@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belohnungs-ToDo-Liste</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .balance-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .balance-display.animate {
+            transform: scale(1.1);
+            color: #FFD700;
+        }
+
+        .balance-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: flex;
+            min-height: 500px;
+        }
+
+        .todo-section {
+            flex: 1;
+            padding: 30px;
+            border-right: 2px solid #f0f0f0;
+        }
+
+        .controls-section {
+            width: 250px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .task-item:hover {
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .task-item.completed {
+            background: #e8f5e8;
+            border-color: #4CAF50;
+        }
+
+        .task-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            transform: scale(1.2);
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .task-text.completed {
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        .task-reward {
+            background: #FFD700;
+            color: #333;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .delete-btn:hover {
+            background: #da190b;
+        }
+
+        .subtask-list {
+            margin-left: 35px;
+            margin-top: 10px;
+        }
+
+        .subtask-item {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtask-item.completed {
+            background: #e8f5e8;
+            border-color: #4CAF50;
+        }
+
+        .add-subtask {
+            margin-left: 35px;
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-subtask input {
+            flex: 1;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .add-subtask button {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .reward-controls {
+            margin-bottom: 30px;
+        }
+
+        .reward-controls label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .reward-controls select, 
+        .reward-controls input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .stats h3 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .clear-btn {
+            background: #ff9800;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .clear-btn:hover {
+            background: #f57c00;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .bounce {
+            animation: bounce 0.6s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="balance-display" id="balance">€ 0.00</div>
+            <div class="balance-label">Gesamtguthaben</div>
+        </div>
+        
+        <div class="content">
+            <div class="todo-section">
+                <h2>Aufgaben</h2>
+                
+                <div class="input-group">
+                    <input type="text" id="taskInput" placeholder="Neue Aufgabe eingeben...">
+                    <button onclick="addTask()">Hinzufügen</button>
+                </div>
+                
+                <ul class="task-list" id="taskList"></ul>
+            </div>
+            
+            <div class="controls-section">
+                <h2>Einstellungen</h2>
+                
+                <div class="reward-controls">
+                    <label for="rewardMode">Belohnungsmodus:</label>
+                    <select id="rewardMode" onchange="updateRewardMode()">
+                        <option value="random">Zufällig (0,05€ - 0,50€)</option>
+                        <option value="manual">Manuell wählen</option>
+                    </select>
+                    
+                    <div id="manualReward" style="display: none;">
+                        <label for="manualAmount">Betrag (€):</label>
+                        <input type="number" id="manualAmount" min="0.05" max="0.50" step="0.01" value="0.25">
+                    </div>
+                </div>
+                
+                <div class="stats">
+                    <h3>Statistiken</h3>
+                    <div class="stat-item">
+                        <span>Erledigte Aufgaben:</span>
+                        <span id="completedTasks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Offene Aufgaben:</span>
+                        <span id="pendingTasks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Gesamtaufgaben:</span>
+                        <span id="totalTasks">0</span>
+                    </div>
+                </div>
+                
+                <button class="clear-btn" onclick="clearCompletedTasks()">
+                    Erledigte löschen
+                </button>
+                
+                <button class="clear-btn" onclick="resetAll()" style="background: #f44336; margin-top: 10px;">
+                    Alles zurücksetzen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tasks = [];
+        let balance = 0;
+        let taskIdCounter = 1;
+
+        // Daten beim Laden der Seite wiederherstellen
+        window.onload = function() {
+            loadData();
+            updateDisplay();
+            updateRewardMode();
+        };
+
+        function loadData() {
+            const savedTasks = localStorage.getItem('todoTasks');
+            const savedBalance = localStorage.getItem('todoBalance');
+            const savedCounter = localStorage.getItem('todoCounter');
+            
+            if (savedTasks) {
+                tasks = JSON.parse(savedTasks);
+            }
+            if (savedBalance) {
+                balance = parseFloat(savedBalance);
+            }
+            if (savedCounter) {
+                taskIdCounter = parseInt(savedCounter);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('todoTasks', JSON.stringify(tasks));
+            localStorage.setItem('todoBalance', balance.toString());
+            localStorage.setItem('todoCounter', taskIdCounter.toString());
+        }
+
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const taskText = taskInput.value.trim();
+            
+            if (taskText === '') return;
+            
+            const reward = getRewardAmount();
+            const newTask = {
+                id: taskIdCounter++,
+                text: taskText,
+                completed: false,
+                reward: reward,
+                subtasks: []
+            };
+            
+            tasks.push(newTask);
+            taskInput.value = '';
+            
+            updateDisplay();
+            saveData();
+        }
+
+        function addSubtask(taskId) {
+            const input = document.getElementById(`subtask-input-${taskId}`);
+            const subtaskText = input.value.trim();
+            
+            if (subtaskText === '') return;
+            
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                const reward = getRewardAmount();
+                const subtask = {
+                    id: taskIdCounter++,
+                    text: subtaskText,
+                    completed: false,
+                    reward: reward
+                };
+                
+                task.subtasks.push(subtask);
+                input.value = '';
+                
+                updateDisplay();
+                saveData();
+            }
+        }
+
+        function toggleTask(taskId, isSubtask = false, parentTaskId = null) {
+            let task;
+            
+            if (isSubtask) {
+                const parentTask = tasks.find(t => t.id === parentTaskId);
+                task = parentTask.subtasks.find(st => st.id === taskId);
+            } else {
+                task = tasks.find(t => t.id === taskId);
+            }
+            
+            if (task) {
+                task.completed = !task.completed;
+                
+                if (task.completed) {
+                    balance += task.reward;
+                    animateBalanceIncrease();
+                } else {
+                    balance -= task.reward;
+                }
+                
+                updateDisplay();
+                saveData();
+            }
+        }
+
+        function deleteTask(taskId, isSubtask = false, parentTaskId = null) {
+            if (isSubtask) {
+                const parentTask = tasks.find(t => t.id === parentTaskId);
+                const subtaskIndex = parentTask.subtasks.findIndex(st => st.id === taskId);
+                const subtask = parentTask.subtasks[subtaskIndex];
+                
+                if (subtask.completed) {
+                    balance -= subtask.reward;
+                }
+                
+                parentTask.subtasks.splice(subtaskIndex, 1);
+            } else {
+                const taskIndex = tasks.findIndex(t => t.id === taskId);
+                const task = tasks[taskIndex];
+                
+                // Belohnung für Hauptaufgabe und alle Unteraufgaben abziehen
+                if (task.completed) {
+                    balance -= task.reward;
+                }
+                task.subtasks.forEach(st => {
+                    if (st.completed) {
+                        balance -= st.reward;
+                    }
+                });
+                
+                tasks.splice(taskIndex, 1);
+            }
+            
+            updateDisplay();
+            saveData();
+        }
+
+        function getRewardAmount() {
+            const mode = document.getElementById('rewardMode').value;
+            
+            if (mode === 'random') {
+                return Math.round((Math.random() * 0.45 + 0.05) * 100) / 100;
+            } else {
+                return parseFloat(document.getElementById('manualAmount').value) || 0.25;
+            }
+        }
+
+        function updateRewardMode() {
+            const mode = document.getElementById('rewardMode').value;
+            const manualDiv = document.getElementById('manualReward');
+            
+            if (mode === 'manual') {
+                manualDiv.style.display = 'block';
+            } else {
+                manualDiv.style.display = 'none';
+            }
+        }
+
+        function animateBalanceIncrease() {
+            const balanceElement = document.getElementById('balance');
+            balanceElement.classList.add('animate', 'bounce');
+            
+            setTimeout(() => {
+                balanceElement.classList.remove('animate', 'bounce');
+            }, 600);
+        }
+
+        function updateDisplay() {
+            updateBalance();
+            updateTaskList();
+            updateStats();
+        }
+
+        function updateBalance() {
+            document.getElementById('balance').textContent = `€ ${balance.toFixed(2)}`;
+        }
+
+        function updateTaskList() {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            
+            tasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = `task-item ${task.completed ? 'completed' : ''}`;
+                
+                li.innerHTML = `
+                    <div class="task-header">
+                        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} 
+                               onchange="toggleTask(${task.id})">
+                        <span class="task-text ${task.completed ? 'completed' : ''}">${task.text}</span>
+                        <span class="task-reward">€ ${task.reward.toFixed(2)}</span>
+                        <button class="delete-btn" onclick="deleteTask(${task.id})">Löschen</button>
+                    </div>
+                    
+                    <div class="subtask-list">
+                        ${task.subtasks.map(subtask => `
+                            <div class="subtask-item ${subtask.completed ? 'completed' : ''}">
+                                <input type="checkbox" ${subtask.completed ? 'checked' : ''} 
+                                       onchange="toggleTask(${subtask.id}, true, ${task.id})">
+                                <span class="task-text ${subtask.completed ? 'completed' : ''}">${subtask.text}</span>
+                                <span class="task-reward">€ ${subtask.reward.toFixed(2)}</span>
+                                <button class="delete-btn" onclick="deleteTask(${subtask.id}, true, ${task.id})">Löschen</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="add-subtask">
+                        <input type="text" id="subtask-input-${task.id}" placeholder="Unteraufgabe hinzufügen...">
+                        <button onclick="addSubtask(${task.id})">+</button>
+                    </div>
+                `;
+                
+                taskList.appendChild(li);
+            });
+        }
+
+        function updateStats() {
+            let completedCount = 0;
+            let totalCount = 0;
+            
+            tasks.forEach(task => {
+                totalCount++;
+                if (task.completed) completedCount++;
+                
+                task.subtasks.forEach(subtask => {
+                    totalCount++;
+                    if (subtask.completed) completedCount++;
+                });
+            });
+            
+            document.getElementById('completedTasks').textContent = completedCount;
+            document.getElementById('pendingTasks').textContent = totalCount - completedCount;
+            document.getElementById('totalTasks').textContent = totalCount;
+        }
+
+        function clearCompletedTasks() {
+            if (!confirm('Möchten Sie wirklich alle erledigten Aufgaben löschen?')) return;
+            
+            // Erledigte Hauptaufgaben entfernen
+            tasks = tasks.filter(task => {
+                if (task.completed) return false;
+                
+                // Erledigte Unteraufgaben entfernen
+                task.subtasks = task.subtasks.filter(subtask => !subtask.completed);
+                return true;
+            });
+            
+            updateDisplay();
+            saveData();
+        }
+
+        function resetAll() {
+            if (!confirm('Möchten Sie wirklich alle Daten zurücksetzen? Dies kann nicht rückgängig gemacht werden!')) return;
+            
+            tasks = [];
+            balance = 0;
+            taskIdCounter = 1;
+            
+            updateDisplay();
+            saveData();
+        }
+
+        // Enter-Taste für Hauptaufgabe
+        document.getElementById('taskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+
+        // Enter-Taste für Unteraufgaben (Event Delegation)
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.target.id && e.target.id.startsWith('subtask-input-')) {
+                const taskId = parseInt(e.target.id.replace('subtask-input-', ''));
+                addSubtask(taskId);
+            }
+        });
+    </script>
+</body>
+</html>
